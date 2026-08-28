@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'com.islamnoor.app',
   appName: 'Islam Noor',
   webDir: 'capacitor-shell',
+  includePlugins: ['@capacitor/local-notifications'],
   server: {
     url: 'https://fortuite-424120936603.europe-west2.run.app',
     androidScheme: 'https',

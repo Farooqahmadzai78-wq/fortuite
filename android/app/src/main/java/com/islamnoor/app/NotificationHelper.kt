@@ -1,40 +1,85 @@
 package com.islamnoor.app
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 object NotificationHelper {
-    const val CHANNEL_ALERTS = "nur_prayer_alerts_v1"
-    const val CHANNEL_PLAYBACK = "nur_prayer_playback_v1"
 
-    fun ensureChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-        val nm = context.getSystemService(NotificationManager::class.java) ?: return
+    const val CHANNEL_ADHAN = "adhan_v3"
+    const val CHANNEL_REMINDER = "reminder_v3"
 
-        val alerts = NotificationChannel(
-            CHANNEL_ALERTS,
-            "Rappels et Adhan",
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Notifications de rappel et d'appel a la priere"
-            setSound(null, null)
-            enableVibration(true)
-            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+    private var ready = false
+
+    fun ensureChannels(ctx: Context) {
+        if (ready) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = ctx.getSystemService(NotificationManager::class.java)
+            listOf("adhan_channel", "prayer_channel", "reminder_channel").forEach {
+                try { nm.deleteNotificationChannel(it) } catch (_: Exception) {}
+            }
+            val adhan = NotificationChannel(
+                CHANNEL_ADHAN, "Adhan", NotificationManager.IMPORTANCE_HIGH)
+            adhan.description = "Appel a la priere"
+            adhan.setSound(null, null)
+            adhan.enableVibration(true)
+            adhan.lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+            nm.createNotificationChannel(adhan)
+
+            val rem = NotificationChannel(
+                CHANNEL_REMINDER, "Rappel avant la priere", NotificationManager.IMPORTANCE_HIGH)
+            rem.description = "Rappel quelques minutes avant l'adhan"
+            rem.enableVibration(true)
+            rem.lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
+            nm.createNotificationChannel(rem)
         }
+        ready = true
+    }
 
-        val playback = NotificationChannel(
-            CHANNEL_PLAYBACK,
-            "Lecture Adhan",
-            NotificationManager.IMPORTANCE_LOW
-        ).apply {
-            description = "Lecture audio en cours"
-            setSound(null, null)
+    fun contentIntent(ctx: Context): PendingIntent {
+        val i = Intent(ctx, MainActivity::class.java)
+        i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        return PendingIntent.getActivity(ctx, 0, i,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    fun stopIntent(ctx: Context): PendingIntent {
+        val i = Intent(ctx, PrayerAudioService::class.java)
+        i.action = PrayerAudioService.ACTION_STOP
+        return PendingIntent.getService(ctx, 1, i,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    fun build(ctx: Context, channel: String, title: String, text: String,
+              ongoing: Boolean, withStop: Boolean): NotificationCompat.Builder {
+        val b = NotificationCompat.Builder(ctx, channel)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(text))
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(contentIntent(ctx))
+            .setAutoCancel(!ongoing)
+            .setOngoing(ongoing)
+        if (withStop) {
+            b.addAction(0, "Arreter l'adhan", stopIntent(ctx))
+            b.setDeleteIntent(stopIntent(ctx))
         }
+        return b
+    }
 
-        nm.createNotificationChannel(alerts)
-        nm.createNotificationChannel(playback)
+    fun show(ctx: Context, id: Int, channel: String, title: String, text: String) {
+        ensureChannels(ctx)
+        try {
+            NotificationManagerCompat.from(ctx)
+                .notify(id, build(ctx, channel, title, text, false, false).build())
+        } catch (_: Exception) {}
     }
 }
