@@ -116,30 +116,7 @@ class PrayerAudioService : Service() {
 
     // ---------- lecture ----------
 
-    private fun estTts(u: String): Boolean = u.contains("api/tts")
-
-    private fun texteTts(u: String): String {
-        return try {
-            val m = Regex("[?&]text=([^&]*)").find(u) ?: return ""
-            java.net.URLDecoder.decode(m.groupValues[1], "UTF-8")
-        } catch (e: Exception) { "" }
-    }
-
     private fun play(url: String) {
-        if (estTts(url)) {
-            val t = if (texteTts(url).isNotEmpty()) texteTts(url) else curText
-            val ar = url.contains("onyx")
-            Log.i(TAG, "voix native (alarme) : " + t.take(70))
-            handler.postDelayed({ stopAudioKeepNotification() }, 25000L)
-            Speaker.speak(this, t, ar, true) {
-                handler.postDelayed({ stopAudioKeepNotification() }, 1200L)
-            }
-            return
-        }
-        playMedia(url)
-    }
-
-    private fun playMedia(url: String) {
         try {
             player = MediaPlayer().apply {
                 setAudioAttributes(
@@ -174,65 +151,44 @@ class PrayerAudioService : Service() {
 
     // ---------- capture des touches volume (ecran eteint) ----------
 
-    @Volatile private var stopTriggered = false
-    private var armAtMs = 0L
-
-    private fun triggerStop(why: String) {
-        if (stopTriggered) return
-        if (armAtMs != 0L && System.currentTimeMillis() < armAtMs) return
-        stopTriggered = true
-        Log.i(TAG, "arret demande: " + why)
-        handler.post { stopAudioKeepNotification() }
-    }
-
     private fun startVolumeKeyCapture() {
         try {
-            val ms = android.media.session.MediaSession(this, "IslamNoorAdhan")
-            session = ms
-            ms.setFlags(
-                android.media.session.MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS or
-                android.media.session.MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
-            )
-            ms.setCallback(object : android.media.session.MediaSession.Callback() {
-                override fun onMediaButtonEvent(mediaButtonIntent: android.content.Intent): Boolean {
-                    val ke = mediaButtonIntent.getParcelableExtra<android.view.KeyEvent>(
-                        android.content.Intent.EXTRA_KEY_EVENT)
-                    if (ke != null && ke.action == android.view.KeyEvent.ACTION_DOWN &&
-                        (ke.keyCode == android.view.KeyEvent.KEYCODE_VOLUME_UP ||
-                         ke.keyCode == android.view.KeyEvent.KEYCODE_VOLUME_DOWN)) {
-                        triggerStop("touche media " + ke.keyCode)
-                        return true
-                    }
-                    return super.onMediaButtonEvent(mediaButtonIntent)
-                }
-                override fun onPause() { triggerStop("pause") }
-                override fun onStop() { triggerStop("stop") }
-            })
+            val ms = MediaSession(this, "IslamNoorAdhan")
 
-            val vp = object : android.media.VolumeProvider(
-                android.media.VolumeProvider.VOLUME_CONTROL_RELATIVE, 20, 10) {
+            val vp = object : VolumeProvider(VOLUME_CONTROL_ABSOLUTE, 100, 50) {
                 override fun onAdjustVolume(direction: Int) {
-                    if (direction != 0) triggerStop("volume dir=" + direction)
+                    if (stopped || armAt == 0L) return
+                    if (System.currentTimeMillis() < armAt) return
+                    if (direction != 0) {
+                        Log.i(TAG, "touche volume captee (session) dir=" + direction)
+                        handler.post { stopAudioKeepNotification() }
+                    }
                 }
                 override fun onSetVolumeTo(volume: Int) {
-                    triggerStop("volume set=" + volume)
+                    if (stopped || armAt == 0L) return
+                    if (System.currentTimeMillis() < armAt) return
+                    Log.i(TAG, "volume absolu capte (session)")
+                    handler.post { stopAudioKeepNotification() }
                 }
             }
             ms.setPlaybackToRemote(vp)
 
+            ms.setCallback(object : MediaSession.Callback() {
+                override fun onPause() { handler.post { stopAudioKeepNotification() } }
+                override fun onStop() { handler.post { stopAudioKeepNotification() } }
+            })
+
             ms.setPlaybackState(
-                android.media.session.PlaybackState.Builder()
-                    .setActions(
-                        android.media.session.PlaybackState.ACTION_PLAY_PAUSE or
-                        android.media.session.PlaybackState.ACTION_STOP)
-                    .setState(android.media.session.PlaybackState.STATE_PLAYING, 0L, 1.0f)
+                PlaybackState.Builder()
+                    .setState(PlaybackState.STATE_PLAYING, 0L, 1.0f)
+                    .setActions(PlaybackState.ACTION_STOP or PlaybackState.ACTION_PAUSE)
                     .build()
             )
             ms.isActive = true
-            armAtMs = System.currentTimeMillis() + 1200L
-            Log.i(TAG, "capture volume active (mode relatif, haut + bas)")
+            session = ms
+            Log.i(TAG, "MediaSession active : touches volume captees")
         } catch (e: Exception) {
-            Log.w(TAG, "capture volume: " + e)
+            Log.w(TAG, "MediaSession echec: " + e)
         }
     }
 

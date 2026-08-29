@@ -610,7 +610,7 @@ export async function initBugTrackerPushService(): Promise<void> {
 
       if (permStatus.receive === "granted") {
         // Register with Google Play Services / FCM to receive device token
-        console.warn("[push] register desactive: google-services.json absent");
+        await PushNotifications.register();
       } else {
         console.warn("[BugTracker Push] Notification permission not granted:", permStatus.receive);
       }

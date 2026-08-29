@@ -6,13 +6,15 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 object NotificationHelper {
 
-    const val CHANNEL_ADHAN = "adhan_v3"
-    const val CHANNEL_REMINDER = "reminder_v3"
+    const val CHANNEL_ADHAN = "adhan_v4"
+    const val CHANNEL_REMINDER = "reminder_v4"
+    private const val TAG = "NurNotif"
 
     private var ready = false
 
@@ -20,7 +22,8 @@ object NotificationHelper {
         if (ready) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val nm = ctx.getSystemService(NotificationManager::class.java)
-            listOf("adhan_channel", "prayer_channel", "reminder_channel").forEach {
+            listOf("adhan_channel", "prayer_channel", "reminder_channel",
+                   "adhan_v3", "reminder_v3").forEach {
                 try { nm.deleteNotificationChannel(it) } catch (_: Exception) {}
             }
             val adhan = NotificationChannel(
@@ -37,8 +40,25 @@ object NotificationHelper {
             rem.enableVibration(true)
             rem.lockscreenVisibility = NotificationCompat.VISIBILITY_PUBLIC
             nm.createNotificationChannel(rem)
+
+            Log.i(TAG, "canaux v4 crees")
         }
         ready = true
+    }
+
+    fun diag(ctx: Context) {
+        try {
+            val enabled = NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+            Log.i(TAG, "areNotificationsEnabled=" + enabled)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val nm = ctx.getSystemService(NotificationManager::class.java)
+                listOf(CHANNEL_ADHAN, CHANNEL_REMINDER).forEach {
+                    val c = nm.getNotificationChannel(it)
+                    Log.i(TAG, "canal " + it + " importance=" +
+                        (c?.importance ?: -1))
+                }
+            }
+        } catch (e: Exception) { Log.w(TAG, "diag err: " + e) }
     }
 
     fun contentIntent(ctx: Context): PendingIntent {
@@ -77,9 +97,18 @@ object NotificationHelper {
 
     fun show(ctx: Context, id: Int, channel: String, title: String, text: String) {
         ensureChannels(ctx)
+        diag(ctx)
         try {
             NotificationManagerCompat.from(ctx)
                 .notify(id, build(ctx, channel, title, text, false, false).build())
-        } catch (_: Exception) {}
+            Log.i(TAG, "notify OK id=" + id + " canal=" + channel)
+        } catch (e: Exception) {
+            Log.e(TAG, "notify ECHEC: " + e)
+            try {
+                val nm = ctx.getSystemService(NotificationManager::class.java)
+                nm.notify(id, build(ctx, channel, title, text, false, false).build())
+                Log.i(TAG, "notify repli OK")
+            } catch (e2: Exception) { Log.e(TAG, "notify repli ECHEC: " + e2) }
+        }
     }
 }
