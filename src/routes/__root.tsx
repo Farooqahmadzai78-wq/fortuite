@@ -236,7 +236,7 @@ function Chrome() {
       <GlobalPrayerScheduler />
       <GlobalAppBackground />
       <EmailChangeHandler />
-      <div className="mx-auto min-h-screen w-full max-w-md md:max-w-xl lg:max-w-2xl pb-24 transform-gpu">
+      <div className="mx-auto min-h-screen w-full max-w-md md:max-w-xl lg:max-w-2xl pb-[calc(env(safe-area-inset-bottom)+7.5rem)]">
         <div key={pathname} className="page-transition-wrapper min-h-full">
           <Outlet />
         </div>

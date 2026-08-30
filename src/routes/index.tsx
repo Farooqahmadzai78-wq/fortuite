@@ -310,6 +310,7 @@ function HomePage() {
                   ? formatPrayerTime(data.timings[next.key], {
                       lang: locale,
                       format: settings.timeFormat,
+                      country: settings.place?.country,
                     })
                   : "--:--"}
               </p>
@@ -444,8 +445,8 @@ function HomePage() {
 
       {/* Prayer Statistics Modal Overlay */}
       {showStatsModal && mounted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md glass bg-card/95 border border-[var(--w-from)]/30 rounded-3xl p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md glass bg-card/95 border border-[var(--w-from)]/30 rounded-3xl p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200 max-h-[85dvh] overflow-y-auto overscroll-contain">
             <div className="flex items-center justify-between pb-3 border-b border-border/60">
               <div className="flex items-center gap-2.5">
                 <div className="grid size-9 place-items-center rounded-2xl bg-[var(--w-from)] text-[var(--w-fg)] shadow-xs">

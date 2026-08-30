@@ -27,7 +27,11 @@ export function PrayerRow({
 }) {
   const { t, locale } = useI18n();
   const { settings } = useSettings();
-  const formattedTime = formatPrayerTime(time, { lang: locale, format: settings.timeFormat });
+  const formattedTime = formatPrayerTime(time, {
+    lang: locale,
+    format: settings.timeFormat,
+    country: settings.place?.country,
+  });
 
   return (
     <div className={`flex items-center gap-3 rounded-2xl px-3.5 py-2.5 ${active ? "widget" : ""}`}>

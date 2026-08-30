@@ -2419,21 +2419,15 @@ body[data-scrolling="true"] .wb-interact-ruby::before {
 /* Page transition GPU accelerated layer */
 .page-transition-wrapper {
   animation: pageFadeIn 0.16s cubic-bezier(0.2, 0.9, 0.3, 1) both;
-  transform: translateZ(0);
-  will-change: opacity, transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  perspective: 1000px;
+  will-change: opacity;
 }
 
 @keyframes pageFadeIn {
   0% {
     opacity: 0.9;
-    transform: translate3d(0, 3px, 0);
   }
   100% {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
   }
 }
 

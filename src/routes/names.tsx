@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronLeft } from "lucide-react";
 import { NAMES_OF_ALLAH } from "@/lib/nur-data";
 import { useI18n } from "@/lib/i18n";
 
@@ -20,12 +21,23 @@ export const Route = createFileRoute("/names")({
 function NamesPage() {
   const { t } = useI18n();
   return (
-    <div className="space-y-4 px-4 pt-[max(1rem,env(safe-area-inset-top))] pb-12">
-      <div className="glass p-4">
-        <h1 className="text-2xl font-extrabold text-foreground">{t.names}</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">{t.namesSub}</p>
+    <div className="space-y-4 px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      {/* En-tête collant avec flèche retour vers l'accueil */}
+      <div className="sticky top-[max(0.5rem,env(safe-area-inset-top))] z-30 glass p-3 flex items-center gap-3 shadow-md">
+        <Link
+          to="/"
+          aria-label="Retour à l'accueil"
+          className="grid size-10 shrink-0 place-items-center rounded-full border border-border bg-background/70 text-foreground hover:bg-secondary transition active:scale-95 cursor-pointer"
+        >
+          <ChevronLeft className="size-6" />
+        </Link>
+        <div className="min-w-0">
+          <h1 className="text-xl font-extrabold text-foreground truncate">{t.names}</h1>
+          <p className="text-xs text-muted-foreground truncate">{t.namesSub}</p>
+        </div>
       </div>
-      <div className="mt-4 grid grid-cols-2 gap-3">
+
+      <div className="grid grid-cols-2 gap-3">
         {NAMES_OF_ALLAH.map((n, i) => (
           <div key={`${n.translit}-${i}`} className="widget-glass p-3 text-center">
             <span className="widget-badge mx-auto size-6 text-[10px] font-bold">{i + 1}</span>

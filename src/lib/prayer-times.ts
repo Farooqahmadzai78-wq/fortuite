@@ -382,6 +382,29 @@ export function inferTimezone(lat: number, lon: number, country?: string): strin
 }
 
 /**
+ * Returns true when the given country commonly uses a 12-hour clock (AM/PM).
+ */
+export function countryUses12h(country?: string | null): boolean {
+  if (!country) return false;
+  const c = country.toLowerCase().trim();
+  const twelveHourCountries = [
+    "united states", "états-unis", "etats-unis", "usa", "u.s.a", "america",
+    "united kingdom", "royaume-uni", "uk", "britain", "angleterre", "england",
+    "ireland", "irlande", "canada", "australia", "australie",
+    "new zealand", "nouvelle-zélande", "nouvelle-zelande",
+    "india", "inde", "pakistan", "afghanistan", "bangladesh",
+    "nepal", "népal", "sri lanka", "philippines",
+    "malaysia", "malaisie", "singapore", "singapour",
+    "egypt", "égypte", "jordan", "jordanie", "lebanon", "liban",
+    "united arab emirates", "émirats arabes unis", "emirats arabes unis", "uae",
+    "qatar", "saudi arabia", "arabie saoudite", "kuwait", "koweït",
+    "oman", "yemen", "yémen", "iraq", "irak", "syria", "syrie",
+    "kenya", "nigeria", "ghana", "south africa", "afrique du sud",
+  ];
+  return twelveHourCountries.some((k) => c.includes(k));
+}
+
+/**
  * Format a prayer time string (e.g. "05:20" or "17:45") with 12h / 24h localization.
  */
 export function formatPrayerTime(
@@ -390,6 +413,7 @@ export function formatPrayerTime(
     hour12?: boolean;
     lang?: string;
     format?: "auto" | "12h" | "24h";
+    country?: string;
   },
 ): string {
   if (!timeStr) return "";
@@ -411,9 +435,13 @@ export function formatPrayerTime(
     } else if (fmt === "24h") {
       use12h = false;
     } else {
-      const is12hLocale =
-        ["en", "ps", "ur", "bn", "hi", "ar", "ar-SA", "fa"].includes(lang) || lang.startsWith("ar");
-      use12h = is12hLocale;
+      if (countryUses12h(options?.country)) {
+        use12h = true;
+      } else {
+        const is12hLocale =
+          ["en", "ps", "ur", "bn", "hi", "ar", "ar-SA", "fa"].includes(lang) || lang.startsWith("ar");
+        use12h = is12hLocale;
+      }
     }
   }
 

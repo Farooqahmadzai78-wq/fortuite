@@ -166,6 +166,7 @@ export function ArcPrayerTimeline({ data, now, next }: ArcPrayerTimelineProps) {
               ? formatPrayerTime(data.timings[key], {
                   lang: locale,
                   format: settings.timeFormat,
+                  country: settings.place?.country,
                 })
               : "--:--";
             const arabicName = ARABIC_NAMES[key];

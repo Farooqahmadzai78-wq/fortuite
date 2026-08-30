@@ -238,7 +238,7 @@ export function IngredientCameraModal({
   return (
     <div
       id="ingredient-camera-viewfinder"
-      className="fixed inset-0 z-50 flex flex-col justify-between bg-black text-white select-none overflow-hidden"
+      className="fixed inset-0 z-[70] flex flex-col justify-between bg-black text-white select-none overflow-hidden overscroll-contain"
     >
       {/* Top action bar */}
       <div className="relative z-20 flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))] bg-gradient-to-b from-black/80 via-black/40 to-transparent">
@@ -297,7 +297,9 @@ export function IngredientCameraModal({
           autoPlay
           playsInline
           muted
-          className="absolute inset-0 h-full w-full object-cover"
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            isInitializing ? "opacity-0" : "opacity-100"
+          }`}
         />
 
         {/* Shutter flash animation when taking picture */}

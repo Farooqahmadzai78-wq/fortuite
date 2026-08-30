@@ -793,7 +793,7 @@ function HalalPage() {
 
       {/* Fullscreen Camera Scanner Overlay (100% full screen window) */}
       {activePanel === "scanner" && (
-        <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col justify-between overflow-hidden animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col justify-between overflow-hidden overscroll-contain animate-in fade-in duration-200">
           {camDenied ? (
             <div className="flex-1 p-6 flex items-center justify-center">
               <PermissionBanner
@@ -865,43 +865,61 @@ function HalalPage() {
               {/* Fullscreen Camera Video Feed */}
               <div
                 id="halal-barcode-reader"
-                className="absolute inset-0 w-full h-full object-cover [&>video]:w-full [&>video]:h-full [&>video]:object-cover"
+                className="absolute inset-0 w-full h-full object-cover bg-slate-950 [&_img]:hidden [&_img]:!opacity-0 [&>video]:w-full [&>video]:h-full [&>video]:object-cover"
               />
 
-              {/* Center Viewfinder Box - Single Clean High-Tech Frame for Auto Scan */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none p-4 sm:p-6">
-                {/* Single Viewfinder Frame (100% transparent, no blur, no filter, natural clear view) */}
-                <div className="relative w-full max-w-[280px] sm:max-w-[340px] aspect-[4/3] rounded-3xl border-2 border-emerald-400/60 shadow-[0_0_50px_rgba(16,185,129,0.35)] flex items-center justify-center overflow-hidden bg-transparent">
-                  {/* Live Auto-Scan Badge inside top of frame */}
-                  <div className="absolute top-3 inset-x-0 flex items-center justify-center">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wider uppercase text-emerald-300 bg-slate-950/80 border border-emerald-400/40 shadow-md">
-                      <span className="relative flex size-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full size-2 bg-emerald-500"></span>
-                      </span>
-                      SCAN AUTO ACTIF
+              {/* Viseur plein écran repensé : coins aux bords, anneau pulsé, laser animé */}
+              <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                {/* Vignettage doux pour la profondeur */}
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(2,6,23,0.6)_100%)]" />
+
+                {/* Grille de scan subtile */}
+                <div
+                  className="absolute inset-0 opacity-[0.12]"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(rgba(16,185,129,0.55) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.55) 1px, transparent 1px)",
+                    backgroundSize: "44px 44px",
+                  }}
+                />
+
+                {/* Coins lumineux aux 4 bords de l'écran */}
+                <div className="absolute top-4 left-4 h-16 w-16 sm:h-20 sm:w-20 rounded-tl-3xl border-t-[6px] border-l-[6px] border-emerald-400/90 shadow-[0_0_30px_rgba(16,185,129,0.8)]" />
+                <div className="absolute top-4 right-4 h-16 w-16 sm:h-20 sm:w-20 rounded-tr-3xl border-t-[6px] border-r-[6px] border-emerald-400/90 shadow-[0_0_30px_rgba(16,185,129,0.8)]" />
+                <div className="absolute bottom-4 left-4 h-16 w-16 sm:h-20 sm:w-20 rounded-bl-3xl border-b-[6px] border-l-[6px] border-emerald-400/90 shadow-[0_0_30px_rgba(16,185,129,0.8)]" />
+                <div className="absolute bottom-4 right-4 h-16 w-16 sm:h-20 sm:w-20 rounded-br-3xl border-b-[6px] border-r-[6px] border-emerald-400/90 shadow-[0_0_30px_rgba(16,185,129,0.8)]" />
+
+                {/* Badge SCAN AUTO ACTIF */}
+                <div className="absolute top-[20%] inset-x-0 flex items-center justify-center">
+                  <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-extrabold tracking-widest uppercase text-emerald-300 bg-slate-950/70 backdrop-blur-md border border-emerald-400/50 shadow-lg shadow-emerald-500/20 animate-pulse">
+                    <span className="relative flex size-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full size-2.5 bg-emerald-500" />
                     </span>
-                  </div>
-
-                  {/* 4 Neon-Green Corner Brackets */}
-                  <div className="absolute top-2 left-2 size-8 sm:size-10 border-t-4 border-l-4 border-emerald-400 rounded-tl-xl shadow-[0_0_14px_#34d399]" />
-                  <div className="absolute top-2 right-2 size-8 sm:size-10 border-t-4 border-r-4 border-emerald-400 rounded-tr-xl shadow-[0_0_14px_#34d399]" />
-                  <div className="absolute bottom-2 left-2 size-8 sm:size-10 border-b-4 border-l-4 border-emerald-400 rounded-bl-xl shadow-[0_0_14px_#34d399]" />
-                  <div className="absolute bottom-2 right-2 size-8 sm:size-10 border-b-4 border-r-4 border-emerald-400 rounded-br-xl shadow-[0_0_14px_#34d399]" />
-
-                  {/* Subtle Center Target Reticle */}
-                  <div className="size-6 border border-emerald-400/30 rounded-full flex items-center justify-center opacity-40">
-                    <div className="size-1.5 bg-emerald-400 rounded-full" />
-                  </div>
-
-                  {/* Continuous Moving Vertical Laser Scanning Beam */}
-                  <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_22px_#34d399] animate-laser-scan" />
+                    Scan auto actif
+                  </span>
                 </div>
 
-                {/* Subtitle text under frame */}
-                <p className="mt-5 text-xs sm:text-sm font-semibold text-white/95 drop-shadow-md text-center bg-black/80 backdrop-blur-md px-5 py-2 rounded-full border border-white/20 shadow-lg">
-                  Placez le code-barres au centre du cadre
-                </p>
+                {/* Anneau central pulsé avec réticule */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="relative size-44 sm:size-52 rounded-full border-2 border-emerald-400/40 animate-pulse shadow-[0_0_60px_rgba(16,185,129,0.35)] flex items-center justify-center">
+                    <div className="absolute left-4 right-4 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
+                    <div className="absolute top-4 bottom-4 w-px bg-gradient-to-b from-transparent via-emerald-400/70 to-transparent" />
+                    <div className="size-24 sm:size-28 rounded-full border border-emerald-300/30 flex items-center justify-center">
+                      <div className="size-3 rounded-full bg-emerald-400 shadow-[0_0_16px_#34d399]" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Faisceau laser vertical continu pleine largeur */}
+                <div className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_28px_#34d399] animate-laser-scan" />
+
+                {/* Texte d'instruction en bas */}
+                <div className="absolute bottom-[16%] inset-x-0 flex items-center justify-center px-6">
+                  <p className="text-xs sm:text-sm font-semibold text-white/95 text-center bg-slate-950/75 backdrop-blur-md px-5 py-2.5 rounded-full border border-emerald-400/30 shadow-lg">
+                    Placez le code-barres au centre du cadre
+                  </p>
+                </div>
               </div>
 
               {/* Bottom bar helper */}
